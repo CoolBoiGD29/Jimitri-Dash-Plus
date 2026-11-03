@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="referrer" content="no-referrer">
+<title>Jimitri Dash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<button id="mute" title="Mute (M)">&#128266;</button>
+<button id="pausebtn" class="hidden" title="Pause (ESC)">
+  <svg width="22" height="22" viewBox="0 0 20 20"><rect x="3" y="2" width="5" height="16" rx="1.5" fill="#fff"/><rect x="12" y="2" width="5" height="16" rx="1.5" fill="#fff"/></svg>
+</button>
+<button id="edstop" class="hidden" title="Stop playtest (Esc)">
+  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" fill="#fff"/></svg>
+</button>
+
+<div id="mainmenu" class="overlay">
+  <div class="ptitle">JIMITRI DASH</div>
+  <div class="mrow">
+    <button class="mbtn big" id="btnplay">
+      <svg width="52" height="52" viewBox="0 0 24 24"><path d="M7 4 v16 l13 -8 z" fill="#fff"/></svg>
+      PLAY
+    </button>
+    <button class="mbtn hammerc" id="btneditor">
+      <svg width="34" height="34" viewBox="0 0 24 24">
+        <path d="M3.5 17.5 L11.5 9.5 l3 3 -8 8 a2.1 2.1 0 0 1 -3 -3 z" fill="#caa05c" stroke="#222" stroke-width="1.2"/>
+        <path d="M9.5 4.5 h7.5 l3.5 3.5 -4 4 -7 -7 z" fill="#cfd8e6" stroke="#222" stroke-width="1.2"/>
+      </svg>
+      EDITOR
+    </button>
+    <button class="mbtn iconc" id="btnicons">
+      <svg width="34" height="34" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="3" fill="#52e85c" stroke="#111" stroke-width="2"/>
+        <circle cx="9" cy="10" r="1.8" fill="#07303d"/>
+        <circle cx="15" cy="10" r="1.8" fill="#07303d"/>
+        <path d="M8 16 H16" stroke="#07303d" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+      ICONS
+    </button>
+    <button class="mbtn setc" id="btnsettings">
+      <svg width="34" height="34" viewBox="0 0 24 24"><path d="M12 2 l1.6 2.6 3-.8 .8 3 2.6 1.6 -1.3 2.8 1.3 2.8 -2.6 1.6 -.8 3 -3-.8 L12 22 l-1.6-2.6 -3 .8 -.8-3 L4 15.6 5.3 12.8 4 10 l2.6-1.6 .8-3 3 .8 z" fill="#fff" stroke="#123" stroke-width="1.2"/><circle cx="12" cy="12" r="3.6" fill="#5a6a88" stroke="#123" stroke-width="1.2"/></svg>
+      SETTINGS
+    </button>
+  </div>
+  <button class="mbtn side" id="btnonline">
+    <svg width="32" height="32" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="5" rx="1.5" fill="#fff"/>
+      <rect x="3" y="10" width="18" height="5" rx="1.5" fill="#fff"/>
+      <rect x="3" y="17" width="18" height="5" rx="1.5" fill="#fff"/>
+    </svg>
+    LEVELS
+  </button>
+  <div class="sub2">CUBE: TAP TO JUMP &bull; SHIP: HOLD TO FLY &bull; UFO: TAP TO JUMP IN AIR &bull; BALL: TAP TO FLIP GRAVITY &bull; DASH ORB: HOLD &bull; PINK PORTAL: MINI</div>
+</div>
+
+<div id="levelsscr" class="overlay hidden">
+  <div class="title2">MAIN LEVELS</div>
+  <div id="levels"></div>
+  <button class="navbtn" id="backlevels">BACK</button>
+</div>
+
+<div id="mylevelsscr" class="overlay hidden">
+  <div class="title2">MY LEVELS</div>
+  <div id="mylist"></div>
+  <div class="mrow">
+    <button class="navbtn" id="createbtn">+ CREATE NEW</button>
+    <button class="navbtn" id="backmylevels">BACK</button>
+  </div>
+</div>
+
+<div id="onlinescr" class="overlay hidden">
+  <div class="title2">UPLOADED LEVELS</div>
+  <div class="sub2">Every level ever uploaded, in one big list. Use COPY CODE / IMPORT CODE to share levels with any device.</div>
+  <div id="uplist"></div>
+  <div class="mrow">
+    <button class="navbtn" id="importbtn">IMPORT CODE</button>
+    <button class="navbtn" id="backonline">BACK</button>
+  </div>
+</div>
+
+<div id="detailscr" class="overlay hidden">
+  <div id="detailbody"></div>
+  <button class="navbtn" id="backdetail">BACK TO LIST</button>
+</div>
+
+<div id="iconscr" class="overlay hidden">
+  <div class="title2">ICONS</div>
+  <div id="iconbody">
+    <div id="icontabs"></div>
+    <div id="iconprev"></div>
+    <div id="icongrid"></div>
+  </div>
+  <button class="navbtn" id="backicons">BACK</button>
+</div>
+
+<div id="editorui" class="hidden"></div>
+
+<div id="pausescr" class="overlay hidden">
+  <div class="title2">PAUSED</div>
+  <div class="mrow wrap">
+    <button class="navbtn green" id="presume">RESUME</button>
+    <button class="navbtn" id="prestart">RESTART</button>
+    <button class="navbtn" id="ppractice">PRACTICE: OFF</button>
+    <button class="navbtn" id="psettings">SETTINGS</button>
+    <button class="navbtn" id="pexit">EXIT</button>
+  </div>
+  <div class="pbox">
+    <div class="plab">MACRO BOT</div>
+    <div class="mrow wrap">
+      <button class="navbtn" id="mrec">&#9679; RECORD</button>
+      <button class="navbtn" id="mplay">&#9654; BOT: OFF</button>
+      <button class="navbtn" id="msave">SAVE FILE</button>
+      <button class="navbtn" id="mload">LOAD FILE</button>
+    </div>
+    <div class="mrow wrap">
+      <label class="plab2">GAME SPEED
+        <select id="mspeed">
+          <option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="0.75">0.75x</option>
+          <option value="1">1x</option><option value="1.5">1.5x</option><option value="2">2x</option>
+        </select>
+      </label>
+      <label class="plab2">VOLUME <input type="range" id="pvol" min="0" max="100" step="1"> <span id="pvolv"></span></label>
+      <label class="plab2">CAMERA ZOOM <input type="range" id="pcam" min="9" max="30" step="1"> <span id="pcamv"></span> blocks tall</label>
+    </div>
+    <div class="sub2" id="macroinfo"></div>
+    <div class="sub2" id="pkeys"></div>
+  </div>
+</div>
+
+<div id="winscr" class="overlay hidden">
+  <div class="title" style="color:#7CFC66" id="wintitle">LEVEL COMPLETE!</div>
+  <div class="sub">CLICK TO CONTINUE</div>
+</div>
+
+<div id="setscr" class="hidden"><div class="edmbox" id="setbox"></div></div>
+
+<div id="toast"></div>
+
+<script src="mainlevels.js"></script>
+<script src="game.js"></script>
+<script src="render.js"></script>
+<script src="editor.js"></script>
+<script>boot();</script>
+<script src="jimitri-modloader.js"></script>
+<script type="module" src="online.js"></script>
+</body>
+</html>

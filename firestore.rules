@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    // Admin = a document in the "admins" collection whose ID is your user id.
+    // Nothing on the website can write to "admins" — only you, in the Firebase console.
+    function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function isStaff() { return isAdmin() || (signedIn() && exists(/databases/$(database)/documents/staff/$(request.auth.uid))); }
+    function notBanned() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.banned != true; }
+    // Anything a normal user submits must be from themselves, not banned, and start "pending".
+    function ownPending() {
+      return signedIn() && notBanned()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'pending';
+    }
+
+    match /admins/{id} { allow read: if true; allow write: if false; }
+    match /staff/{id}  { allow read: if true; allow write: if isAdmin(); }
+
+    match /users/{uid} {
+      allow read: if true;
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.banned == false
+        && request.resource.data.keys().hasOnly(['username', 'banned', 'created']);
+      allow update, delete: if isAdmin();
+    }
+
+    match /levels/{id} { allow read: if true; allow write: if isStaff(); }
+
+    match /records/{id} {
+      allow read: if true;
+      allow create: if isStaff() || (ownPending()
+        && request.resource.data.percent is number
+        && request.resource.data.percent >= 1 && request.resource.data.percent <= 100
+        && request.resource.data.evidence.size() < 400);
+      allow update, delete: if isStaff();
+    }
+
+    match /verifications/{id} {
+      allow read: if true;
+      allow create: if ownPending() && request.resource.data.code.size() < 20000;
+      allow update, delete: if isStaff();
+    }
+
+    match /mods/{id} {
+      allow read: if true;
+      allow create: if ownPending() && request.resource.data.code.size() < 100000
+        && request.resource.data.name.size() < 80;
+      allow update, delete: if isStaff();
+    }
+
+    // Levels uploaded from inside the game. Anyone logged in (and not banned) can upload;
+    // only the uploader or staff can delete; nobody can edit after upload.
+    match /uploads/{id} {
+      allow read: if true;
+      allow create: if signedIn() && notBanned()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.code.size() < 900000
+        && request.resource.data.name.size() <= 30;
+      allow delete: if isStaff() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow update: if false;
+    }
+
+    match /tutorials/{id} { allow read: if true; allow write: if isAdmin(); }
+  }
+}
