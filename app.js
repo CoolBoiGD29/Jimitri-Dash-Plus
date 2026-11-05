@@ -3,6 +3,8 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, getDocs, query, where, addDoc, onSnapshot, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+import { initCommunity } from './community.js';
+
 /* ====== EASY SETTINGS ====== */
 const GAME_URL = './game/'; // the game folder inside this repo (use the full original URL here if you don't host a copy)
 const MAX_VIDEOS = 5;                                                 // tutorial video limit
@@ -25,7 +27,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const safe = u => /^https?:\/\//i.test(u) ? u : '#';
 const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3500); };
-const modal = h => { $('modalBody').innerHTML = '<span class="close" data-act="close">&times;</span>' + h; $('modal').classList.add('open'); };
+const modal = h => { $('modalBody').style.maxWidth = ''; $('modalBody').innerHTML = '<span class="close" data-act="close">&times;</span>' + h; $('modal').classList.add('open'); };
 const closeModal = () => $('modal').classList.remove('open');
 const msg = (id, t, ok) => { const m = $(id); m.className = 'msg ' + (ok ? 'ok' : 'err'); m.textContent = t; };
 const copy = async (t, ok) => { try { await navigator.clipboard.writeText(t); toast(ok); } catch (e) { prompt('Copy this:', t); } };
@@ -38,7 +40,7 @@ const uid = () => auth.currentUser && auth.currentUser.uid;
 const me = () => S.users[uid()];
 const isAdmin = () => !!(uid() && S.admins[uid()]);
 const isStaff = () => isAdmin() || !!(uid() && S.staff[uid()]);
-const pending = () => S.records.filter(r => r.status === 'pending').length + S.verifications.filter(v => v.status === 'pending').length + S.mods.filter(m => m.status === 'pending').length;
+const pending = () => S.records.filter(r => r.status === 'pending').length + S.verifications.filter(v => v.status === 'pending').length + S.mods.filter(m => m.status === 'pending').length + (S.community || []).filter(c => c.status === 'pending').length;
 const need = () => { if (me()) return true; toast('Log in first.'); acts['open-auth'](); return false; };
 
 /* mods use the same share-code format as the Jimitri Mod Loader */
@@ -163,4 +165,5 @@ document.addEventListener('click', async e => {
   try { await acts[el.dataset.act](el.dataset.id, el); }
   catch (err) { toast(err.code === 'permission-denied' ? 'Not allowed. Are you logged in, not banned, and approved for that?' : err.message); }
 });
+initCommunity({ S, views, acts, fs, TABS, render, modal, closeModal, toast, esc, safe, msg, me, uid, need, isAdmin, isStaff, GAME_URL });
 render();
